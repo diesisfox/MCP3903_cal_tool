@@ -6,6 +6,7 @@ const $ = require('jquery');
 const SerialPort = require('serialport');
 const {clipboard} = require('electron')
 var portsList, port;
+// var pastReadings = [];
 
 function scanPorts() {
 	SerialPort.list((err,ports)=>{
@@ -80,7 +81,7 @@ function parseData(data){
 
 		if(frame.type == 'frame'){
 			frame.id = parseInt(frame.id, 16);
-			if((frame.id & 0xff0) == 0x200){
+			if((frame.id & 0xfff) == 0x203){
 				$('#hex0')[0].innerText = frame.data[2] + frame.data[1] + frame.data[0];
 				$('#hex1')[0].innerText = frame.data[6] + frame.data[5] + frame.data[4];
 				for(let i=0; i<frame.data.length; i++){
@@ -93,12 +94,27 @@ function parseData(data){
 					}
 				}
 				var channelNum = frame.id & 0xf;
+
 				$('#dec0')[0].innerText = reading[0];
 				$('#rat0')[0].innerText = reading[0] * 100 / 0x800000;
-				$('#vad0')[0].innerText = (reading[0] * 2.33) /(8388608 * 3 * 1);
+				$('#vad0')[0].innerText = (reading[0] * 2.33) /(8388608 * 3 * 1);;
+				$('#vin0')[0].innerText = (reading[0]+20783)/33038;
+				// $('#vin0')[0].innerText = vinViaInterpolaion(reading[0]);
+
+				// pastReadings.shift();
+				// pastReadings[1023] = reading[1];
+				// let movingAverage = 0;
+				// for(let i=0; i<pastReadings.length; i++){
+				// 	movingAverage += pastReadings[1];
+				// }
+				// movingAverage /= pastReadings.length;
+
 				$('#dec1')[0].innerText = reading[1];
 				$('#rat1')[0].innerText = reading[1] * 100 / 0x800000;
 				$('#vad1')[0].innerText = (reading[1] * 2.33) /(8388608 * 3 * 1);
+				$('#vin1')[0].innerText = ch1Map(reading[1]);
+
+				// copyData();
 			}
 		}
 	}
@@ -126,3 +142,39 @@ window.onload = function(){
 	}
 	$('#copyBtn')[0].onclick = copyData;
 }
+
+function ch0Map(raw){
+	return (raw+20783)/33038;
+}
+
+function ch1Map(raw){
+	return (raw+39388.8885017425)/1613637.11498258;
+}
+
+function vinViaInterpolaion(raw){
+	let loIndex = binarySearchLow(raw, 0, ch0lut.length-1);
+	let lowV = ch0lut[loIndex][0];
+	let VRange = (ch0lut[loIndex+1][0]-ch0lut[loIndex][0]);
+	let rawRange = ch0lut[loIndex+1][1]-ch0lut[loIndex][1];
+	let deltaRaw = raw-ch0lut[loIndex][1];
+	return lowV + (VRange * deltaRaw / rawRange);
+}
+
+function binarySearchLow(mohms, low, high){
+	if(high-low == 1) return low;
+	let middleIndex = Math.floor((low+high)/2);
+	if(mohms <= ch0lut[middleIndex][1]){
+		return binarySearchLow(mohms, low, middleIndex);
+	}else{
+		return binarySearchLow(mohms, middleIndex, high);
+	}
+}
+
+var ch0lut = [
+	[0.011,-19754],		[5,145393],			[10,310482],		[15,475283],
+	[20,640279],		[25,805465],		[30.1,973998],		[35.22,1142652],
+	[40.41,1314167],	[45.76,1490752],	[51.66,1685731],	[55.17,1801058],
+	[60.25,1968857],	[65.33,2136178],	[70.4,2303742],		[75,2453834],
+	[80,2621218],		[85.1,2788957],		[90.2,2959515],		[95.3,3129667],
+	[100.5,3299866],	[105.7,3473919],	[111.3,3656618],	[115.2,3786654]
+]
