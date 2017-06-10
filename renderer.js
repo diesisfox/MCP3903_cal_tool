@@ -5,25 +5,92 @@
 const $ = require('jquery');
 const SerialPort = require('serialport');
 const {clipboard} = require('electron')
-var portsList, port;
+var port, continuousMode = false;
 // var pastReadings = [];
+
+// ##     ## ######## #### ##
+// ##     ##    ##     ##  ##
+// ##     ##    ##     ##  ##
+// ##     ##    ##     ##  ##
+// ##     ##    ##     ##  ##
+// ##     ##    ##     ##  ##
+//  #######     ##    #### ########
+
+function copyData(){
+	clipboard.writeText($('#dec0')[0].innerText+'\t'+$('#dec1')[0].innerText);
+}
+
+//  ######     ###    ##       ##       ########     ###     ######  ##    ##  ######
+// ##    ##   ## ##   ##       ##       ##     ##   ## ##   ##    ## ##   ##  ##    ##
+// ##        ##   ##  ##       ##       ##     ##  ##   ##  ##       ##  ##   ##
+// ##       ##     ## ##       ##       ########  ##     ## ##       #####     ######
+// ##       ######### ##       ##       ##     ## ######### ##       ##  ##         ##
+// ##    ## ##     ## ##       ##       ##     ## ##     ## ##    ## ##   ##  ##    ##
+//  ######  ##     ## ######## ######## ########  ##     ##  ######  ##    ##  ######
+
+window.onload = function(){
+	scanPorts();
+	$('#scanBtn')[0].onclick = copyBtnCb;
+	$('#openBtn')[0].onclick = ()=>{
+		openPort($("#portBtn")[0].innerText.slice(0,-1), (err)=>{
+			console.log(err);
+		});
+	}
+	$('#copyBtn')[0].onclick = copyData;
+	$('#continuousBtn')[0].onclick = contBtnCb;
+}
+
+function contBtnCb(){
+	if($('#continuousBtn').hasClass('btn-default')){
+		continuousMode = true;
+		$('#continuousBtn').removeClass('btn-default');
+		$('#continuousBtn').addClass('btn-primary');
+		$('#copyBtn').removeClass('btn-primary');
+		$('#copyBtn')[0].onclick = null;
+	}else{
+		continuousMode = false;
+		$('#continuousBtn').addClass('btn-default');
+		$('#continuousBtn').removeClass('btn-primary');
+		$('#copyBtn').addClass('btn-primary');
+		$('#copyBtn')[0].onclick = copyBtnCb;
+	}
+}
+
+$(document).click(function(event){
+	event.target.blur();
+});
+
+function copyBtnCb(){
+	scanPorts;
+	if(port.isOpen()){
+		port.close();
+	}
+	$('#openBtn').addClass('btn-success');
+	$('#closeBtn').removeClass('btn-danger');
+	$('#portBtn')[0].innerHTML = 'Select Port <span class="caret"></span>';
+}
+
+//  ######  ######## ########  ####    ###    ##
+// ##    ## ##       ##     ##  ##    ## ##   ##
+// ##       ##       ##     ##  ##   ##   ##  ##
+//  ######  ######   ########   ##  ##     ## ##
+//       ## ##       ##   ##    ##  ######### ##
+// ##    ## ##       ##    ##   ##  ##     ## ##
+//  ######  ######## ##     ## #### ##     ## ########
 
 function scanPorts() {
 	SerialPort.list((err,ports)=>{
 		portsList = ports;
 		$('#portDropdown').children().remove();
-		if(portsList.length == 0){
+		if(ports.length == 0){
 			$("#portDropdown").append('<li id="noPorts"><a href="#">Nothing to show...</a></li>');
 		}else{
-			for (var i=0; i<portsList.length; i++){
-				$("#portDropdown").append('<li class="dropdownSelect"><a href="#">'+portsList[i].comName.toString()+'</a></li>');
-			}
-		}
-		var items = $("#portDropdown").children();
-		for(var i=0; i<items.length; i++){
-			let text = items[i].innerText;
-			items[i].onclick = ()=>{
-				$("#portBtn")[0].innerHTML = text+' <span class="caret"></span>';
+			for (var i=0; i<ports.length; i++){
+				$("#portDropdown").append('<li class="dropdownSelect"><a href="#">'+ports[i].comName+'</a></li>');
+				var tempPortName = ports[i].comName;
+				$("#portDropdown").children()[i].onclick = ()=>{
+					$("#portBtn")[0].innerHTML = tempPortName+' <span class="caret"></span>';
+				};
 			}
 		}
 	});
@@ -68,6 +135,14 @@ function openPort(comName){
 	port.open();
 }
 
+//  ######   #######  ##    ## ##     ## ######## ########   ######  ####  #######  ##    ##
+// ##    ## ##     ## ###   ## ##     ## ##       ##     ## ##    ##  ##  ##     ## ###   ##
+// ##       ##     ## ####  ## ##     ## ##       ##     ## ##        ##  ##     ## ####  ##
+// ##       ##     ## ## ## ## ##     ## ######   ########   ######   ##  ##     ## ## ## ##
+// ##       ##     ## ##  ####  ##   ##  ##       ##   ##         ##  ##  ##     ## ##  ####
+// ##    ## ##     ## ##   ###   ## ##   ##       ##    ##  ##    ##  ##  ##     ## ##   ###
+//  ######   #######  ##    ##    ###    ######## ##     ##  ######  ####  #######  ##    ##
+
 function parseData(data){
 	var frame;
 	try {
@@ -98,57 +173,33 @@ function parseData(data){
 				$('#dec0')[0].innerText = reading[0];
 				$('#rat0')[0].innerText = reading[0] * 100 / 0x800000;
 				$('#vad0')[0].innerText = (reading[0] * 2.33) /(8388608 * 3 * 1);;
-				$('#vin0')[0].innerText = (reading[0]+20783)/33038;
-				// $('#vin0')[0].innerText = vinViaInterpolaion(reading[0]);
-
-				// pastReadings.shift();
-				// pastReadings[1023] = reading[1];
-				// let movingAverage = 0;
-				// for(let i=0; i<pastReadings.length; i++){
-				// 	movingAverage += pastReadings[1];
-				// }
-				// movingAverage /= pastReadings.length;
+				$('#vin0')[0].innerText = psb0ch0Map(reading[0]);
 
 				$('#dec1')[0].innerText = reading[1];
 				$('#rat1')[0].innerText = reading[1] * 100 / 0x800000;
 				$('#vad1')[0].innerText = (reading[1] * 2.33) /(8388608 * 3 * 1);
-				$('#vin1')[0].innerText = ch1Map(reading[1]);
+				$('#vin1')[0].innerText = psb0ch1Map(reading[1]);
 
-				// copyData();
+				if(continuousMode) copyData();
 			}
 		}
 	}
 }
 
-function copyData(){
-	clipboard.writeText($('#dec0')[0].innerText+'\t'+$('#dec1')[0].innerText);
-}
-
-window.onload = function(){
-	scanPorts();
-	$('#scanBtn')[0].onclick = ()=>{
-		scanPorts;
-		if(port.isOpen()){
-			port.close();
-		}
-		$('#openBtn').addClass('btn-success');
-		$('#closeBtn').removeClass('btn-danger');
-		$('#portBtn')[0].innerHTML = 'Select Port <span class="caret"></span>';
-	}
-	$('#openBtn')[0].onclick = ()=>{
-		openPort($("#portBtn")[0].innerText.slice(0,-1), (err)=>{
-			console.log(err);
-		});
-	}
-	$('#copyBtn')[0].onclick = copyData;
-}
-
-function ch0Map(raw){
+function psb0ch0Map(raw){
 	return (raw+20783)/33038;
 }
 
-function ch1Map(raw){
-	return (raw+39388.8885017425)/1613637.11498258;
+function psb0ch1Map(raw){
+	return (raw + 30217.2042253521) / 163576.265422321;
+}
+
+function psb0ch5Map(raw){
+	return (raw-12693.6707317073)/324921.553523035;
+}
+
+function psb0ch4Map(raw){
+	return (raw+17051.8328322493)/33134.5112988709;
 }
 
 function vinViaInterpolaion(raw){
