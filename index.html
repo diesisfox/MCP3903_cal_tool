@@ -9,50 +9,57 @@
 	<title>MCP3903 Readings Tool</title>
 </head>
 <body>
-	<div class="container-fluid">
-		<div class="center" style="margin:50px">
-			<h1 class="pull-left">MCP3903 Readings Tool</h1>
-			<div class="btn-group pull-right">
-				<button type="button" name="button" class="btn btn-primary btn-lg" id="copyBtn">Take Snapshot</button>
-				<button type="button" name="button" class="btn btn-default btn-lg" id="continuousBtn"><span class="glyphicon glyphicon-refresh"></span></button>
-			</div>
-			<div class="row"></div>
-				<h3>Serial Port Settings:</h3>
-				<div class="row">
-					<div class="dropdown inline d-inline pull-left" style="left:14px;margin-right:5px;">
-						<button class="btn btn-default dropdown-toggle d-inline" type="button" data-toggle="dropdown" id="portBtn">Select Port
-							<span class="caret"></span>
-						</button>
-						<ul class="dropdown-menu" id="portDropdown">
-							<li id="noPorts"><a href="#">Nothing to show...</a></li>
-						</ul>
-					</div>
-					<button type="button" class="btn btn-default d-inline" style="margin-left:13px" id="scanBtn">Scan</button>
-					<button type="button" class="btn btn-success d-inline" id="openBtn">Open</button>
-					<button type="button" class="btn d-inline" id="closeBtn">Close</button>
+	<div class="container-fluid" style="margin:40px">
+		<div class="row">
+			<div class="col-md-12">
+				<h1 class="pull-left">MCP3903 Readings Tool</h1>
+				<div class="btn-group pull-right">
+					<button type="button" name="button" class="btn btn-primary btn-lg" id="copyBtn">Take Snapshot</button>
+					<button type="button" name="button" class="btn btn-default btn-lg" id="continuousBtn"><span class="glyphicon glyphicon-refresh"></span></button>
 				</div>
-			<div class="">
-				<h3>Group 0</h3>
-				<div class="row">
-					<div class="col-md-6">
-						<div id="channel0" class="well">
-							<h4>Channel 0</h4>
-							<p>hex: 0x<span id="hex0">000000</span></p>
-							<p>dec: <span id="dec0">0</span></p>
-							<p>ratio: <span id="rat0">0</span> %</p>
-							<p>V₊₋: <span id="vad0">0</span> V</p>
-							<p>V_in: <span id="vin0">0</span> V</p>
-						</div>
+			</div>
+		</div>
+		<h3>Serial Port Settings:</h3>
+		<div class="row">
+			<div class="dropdown inline d-inline pull-left" style="left:14px;margin-right:5px;">
+				<button class="btn btn-default dropdown-toggle d-inline" type="button" data-toggle="dropdown" id="portBtn">Select Port
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" id="portDropdown">
+					<li id="noPorts"><a href="#">Nothing to show...</a></li>
+				</ul>
+			</div>
+			<button type="button" class="btn btn-default d-inline" style="margin-left:13px" id="scanBtn">Scan</button>
+			<button type="button" class="btn btn-success d-inline" id="openBtn">Open</button>
+			<button type="button" class="btn d-inline" id="closeBtn">Close</button>
+
+			<div class="btn-group" id="idBtnGroup">
+				<button type="button" name="button" class="btn btn-default" id="id201btn">0x201</button>
+				<button type="button" name="button" class="btn btn-default" id="id202btn">0x202</button>
+				<button type="button" name="button" class="btn btn-default" id="id203btn">0x203</button>
+			</div>
+		</div>
+		<div class="">
+			<h3>Group 0</h3>
+			<div class="row">
+				<div class="col-md-6">
+					<div id="channel0" class="well">
+						<h4>Channel 0</h4>
+						<p>hex: 0x<span id="hex0">000000</span></p>
+						<p>dec: <span id="dec0">0</span></p>
+						<p>ratio: <span id="rat0">0</span> %</p>
+						<p>V₊₋: <span id="vad0">0</span> V</p>
+						<p>V_in: <span id="vin0">0</span> V</p>
 					</div>
-					<div class="col-md-6">
-						<div id="channel1" class="well">
-							<h4>Channel 1</h4>
-							<p>hex: 0x<span id="hex1">000000</span></p>
-							<p>dec: <span id="dec1">0</span></p>
-							<p>ratio: <span id="rat1">0</span> %</p>
-							<p>V₊₋: <span id="vad1">0</span> V</p>
-							<p>I_in: <span id="vin1">0</span> A</p>
-						</div>
+				</div>
+				<div class="col-md-6">
+					<div id="channel1" class="well">
+						<h4>Channel 1</h4>
+						<p>hex: 0x<span id="hex1">000000</span></p>
+						<p>dec: <span id="dec1">0</span></p>
+						<p>ratio: <span id="rat1">0</span> %</p>
+						<p>V₊₋: <span id="vad1">0</span> V</p>
+						<p>I_in: <span id="vin1">0</span> A</p>
 					</div>
 				</div>
 			</div>
