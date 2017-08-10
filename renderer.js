@@ -42,7 +42,7 @@ function getFormVal(){
 }
 
 function setFormVal(x){
-	$('#currentVal').val(x);
+	$('#currentVal').val(x.toFixed(6));
 }
 
 function getIncrement(){
@@ -80,8 +80,9 @@ function renderTable(){
 	let x = '';
 	for(let i=0; i<tableData.length; i++){
 		let y = tableData[i];
-		x+='<tr><td>'+y.magnitude+'</td><td>'+y.reading+'</td><td>'+y.sampleCount+'</td></tr>';
+		x += '<tr><td>' + y.magnitude.toFixed(6) + '</td><td>' + y.reading.toFixed(6) + '</td><td>' + y.sampleCount + '</td></tr>';
 	}
+	$('#tbody').children().remove()
 	$('#tbody').append(x);
 }
 
@@ -89,7 +90,7 @@ function copyTable(){
 	let x = '';
 	for(let i=0; i<tableData.length; i++){
 		let y = tableData[i];
-		x+=y.magnitude+'\t'+y.reading+'\t'+y.sampleCount+'\n';
+		x+=y.magnitude.toFixed(6)+'\t'+y.reading+'\t'+y.sampleCount+'\n';
 	}
 	clipboard.writeText(x);
 }
