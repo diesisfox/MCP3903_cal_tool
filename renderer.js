@@ -5,8 +5,21 @@
 const $ = require('jquery');
 const SerialPort = require('serialport');
 const {clipboard} = require('electron')
-var port, continuousMode = false, listenID = 0x201;
-// var pastReadings = [];
+var port,
+	continuousMode = false,
+	listenID = 0x201,
+	readings = [],
+	collecting = false,
+	collected = 0,
+	tableData = [],
+	readingSelect = 0;;
+
+$(document).bind('mousemove', function(e){
+    $('#tail').css({
+       left:  e.pageX - 5,
+       top:   e.pageY + 20
+    });
+});
 
 // ##     ## ######## #### ##
 // ##     ##    ##     ##  ##
@@ -18,6 +31,67 @@ var port, continuousMode = false, listenID = 0x201;
 
 function copyData(){
 	clipboard.writeText($('#dec0')[0].innerText+'\t'+$('#dec1')[0].innerText);
+}
+
+function getFormSamples(){
+	return Math.round(parseFloat($('#sampleCount').val()));
+}
+
+function getFormVal(){
+	return (parseFloat($('#currentVal').val()));
+}
+
+function setFormVal(x){
+	$('#currentVal').val(x);
+}
+
+function getIncrement(){
+	return (parseFloat($('#increment').val()));
+}
+
+function startCollection(){
+	if(!collecting){
+		collecting = true;
+		$('#tail').show();
+	}
+}
+
+function insertAscending(arr, data, comp){
+
+}
+
+function wrapUpCollection(){
+	let x = 0;
+	for(let i=0; i<readings.length; i++){
+		x += readings[i];
+	}
+	x/=readings.length;
+	tableData.push({magnitude: getFormVal(), reading: x, sampleCount: getFormSamples()});
+	setFormVal(getFormVal()+getIncrement());
+	renderTable();
+	collected = 0;
+	readings = [];
+	$('#tail').hide();
+	collecting = false;
+	$('#tail').children().width('0%');
+}
+
+function renderTable(){
+	let x = '';
+	for(let i=0; i<tableData.length; i++){
+		let y = tableData[i];
+		x+='<tr><td>'+y.magnitude+'</td><td>'+y.reading+'</td><td>'+y.sampleCount+'</td></tr>';
+	}
+	$('#tbody').append(x);
+}
+
+function copyTable(){
+	let x = '';
+	for(let i=0; i<tableData.length; i++){
+		let y = tableData[i];
+		x+=y.magnitude+'\t'+y.reading+'\t'+y.sampleCount+'\n';
+	}
+	clipboard.writeText(x);
 }
 
 //  ######     ###    ##       ##       ########     ###     ######  ##    ##  ######
@@ -36,15 +110,25 @@ window.onload = function(){
 			console.log(err);
 		});
 	}
-	$('#copyBtn')[0].onclick = copyData;
+	$('#copyBtn')[0].onclick = startCollection;
 	$('#continuousBtn')[0].onclick = contBtnCb;
 	$('#idBtnGroup').children().click((e)=>{
 		listenID = parseInt($(e.target).text(), 16);
 		$('#idBtnGroup').children().addClass('btn-default');
 		$(e.target).removeClass('btn-default');
 	});
+	$('#VABtnGroup').children().click((e)=>{
+		readingSelect = $(e.target).text()=='V'?0:1;
+		$('#VABtnGroup').children().addClass('btn-default');
+		$(e.target).removeClass('btn-default');
+	});
 
-	$('#id201btn').click();
+	$('#id201btn, #VAVbtn').click();
+	$('#resetTableBtn')[0].onclick = ()=>{
+		tableData = [];
+		renderTable();
+	}
+	$('#copyTableBtn')[0].onclick = copyTable;
 }
 
 function contBtnCb(){
@@ -114,7 +198,6 @@ function openPort(comName){
 		lock: true
 	});
 	port.on('data', (data)=>{
-		// console.log(data);
 		parseData(data);
 	});
 	port.on('open', ()=>{
@@ -200,6 +283,17 @@ function parseData(data){
 				}
 
 				if(continuousMode) copyData();
+
+				if(collecting){
+					let s = getFormSamples();
+					if(collected < s){
+						readings.push(reading[readingSelect]);
+						collected++;
+						$('#tail').children().width((collected*100/s)+'%');
+					}else{
+						wrapUpCollection();
+					}
+				}
 			}
 		}
 	}
