@@ -65,7 +65,7 @@
 			<div class="col-md-3">
 				<div style="margin-right:5px;" class="input-group" id="">
 					<span class="input-group-addon">samples</span>
-					<input type="number" id="sampleCount" class="form-control" value="16" step="1" max="255" min="1">
+					<input type="number" id="sampleCount" class="form-control" value="32" step="1" max="255" min="1">
 				</div>
 			</div>
 			<div class="col-md-2">
@@ -115,8 +115,8 @@
 	</div>
 </body>
 <footer>
-	<div  class="progress" id="tail" style="position: absolute; float: left; min-width: 120px; height: 8px; z-index: 99999" hidden="true">
-		<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+	<div  class="progress" id="tail" style="position: absolute; float: left; min-width: 120px; height: 8px; z-index: 99999; transition: none !important;" hidden="true">
+		<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 0%; transition: none !important">
 			<span class="sr-only">60% Complete</span>
 		</div>
 	</div>

@@ -317,7 +317,9 @@ function psb0ch5Map(raw){
 }
 
 function psb1ch1Map(raw){
-	return (raw-69080.9705882353)/165597.927315084;
+	// return (raw-69080.9705882353)/165597.927315084;
+	//y = 90,143.845671836900x + 43,669.272320584800
+	return (raw - 43669.272320584800) / 90143.845671836900;
 }
 
 function vinViaInterpolaion(raw){
